@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYSRP Manager</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    input[type="text"], input[type="password"], select {
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+        background-color: #333;
+        color: white;
+    }
+    input[type="submit"], .button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+    .button.red {
+        background-color: #FF5733;
+    }
+    .button.red:hover {
+        background-color: #E74C3C;
+    }
+    .button.orange {
+        background-color: #FFA233;
+    }
+    .button.orange:hover {
+        background-color: #E67E22;
+    }
+    .button.green {
+        background-color: #33FF80;
+    }
+    .button.green:hover {
+        background-color: #2ECC71;
+    }
+    .staff-member {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #333;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+        background-color: #333;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>NYSRP Manager</h1>
+    <h2>Staff Page</h2>
+    <form id="add-staff-form">
+        <div class="form-group">
+            <input type="text" id="staff-name" placeholder="Enter staff name">
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Add Staff">
+        </div>
+    </form>
+    <div id="staff-list"></div>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Infraction</h2>
+        <form id="infraction-form">
+            <div class="form-group">
+                <select id="infraction-type">
+                    <option value="Verbal Warning">Verbal Warning</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Strike">Strike</option>
+                    <option value="Suspension">Suspension</option>
+                </select>
+                <input type="date" id="suspension-date" style="display: none;">
+            </div>
+            <div class="form-group">
+                <input type="text" id="infraction-reason" placeholder="Enter reason">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Infract">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('add-staff-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var staffName = document.getElementById('staff-name').value;
+        if (staffName.trim() === '') {
+            alert('Please enter a valid staff name.');
+            return;
+        }
+        addStaffToList(staffName);
+    });
+
+    function addStaffToList(staffName) {
+        var staffList = document.getElementById('staff-list');
+        var staffMember = document.createElement('div');
+        staffMember.classList.add('staff-member');
+        staffMember.innerHTML = `
+            <span>${staffName}</span>
+            <div>
+                <button class="button red" onclick="removeStaff(this)">Fire</button>
+                <button class="button orange" onclick="openInfractionModal(this)">Infract</button>
+                <button class="button green" onclick="viewPunishments(this)">View Punishments</button>
+            </div>
+        `;
+        staffList.appendChild(staffMember);
+    }
+
+    function removeStaff(button) {
+        var staffMember = button.parentElement.parentElement;
+        staffMember.remove();
+    }
+
+    function openInfractionModal(button) {
+        var modal = document.getElementById('myModal');
+        var span = document.getElementsByClassName("close")[0];
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        modal.style.display = "block";
+
+        var staffMember = button.parentElement.parentElement;
+        var staffName = staffMember.querySelector('span').textContent;
+        document.getElementById('infraction-form').onsubmit = function(e) {
+            e.preventDefault();
+            var infractionType = document.getElementById('infraction-type').value;
+            var infractionReason = document.getElementById('infraction-reason').value;
+            var suspensionDate = document.getElementById('suspension-date').value;
+
+            // Handle saving infraction and reason
+            console.log('Staff:', staffName);
+            console.log('Infraction:', infractionType);
+            console.log('Reason:', infractionReason);
+            if (infractionType === 'Suspension' && suspensionDate) {
+                console.log('Suspension Date:', suspensionDate);
+                // Calculate suspension countdown
+                var today = new Date();
+                var endDate = new Date(suspensionDate);
+                var countdown = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                staffMember.querySelector('span').innerHTML = `${staffName} <span style="color: red;">(Suspended till ${suspensionDate})</span>`;
+            }
+            modal.style.display = "none";
+        }
+        document.getElementById('infraction-type').onchange = function() {
+            var suspensionDateInput = document.getElementById('suspension-date');
+            if (this.value === 'Suspension') {
+                suspensionDateInput.style.display = 'inline-block';
+            } else {
+                suspensionDateInput.style.display = 'none';
+            }
+        }
+    }
+
+    function viewPunishments(button) {
+        // Handle viewing punishments for the selected staff member
+        var staffMember = button.parentElement.parentElement;
+        var staffName = staffMember.querySelector('span').textContent;
+        // Display punishments for the staff member in a popup or modal
+        alert(`View punishments for ${staffName}`);
+    }
+</script>
+</body>
+</html>
